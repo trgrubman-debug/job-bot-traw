@@ -1,0 +1,4 @@
+# Example crontab entry — runs the bot daily at 9 AM UTC.
+# Install with:  crontab -e   then paste the line below (adjust paths).
+
+0 9 * * * cd /opt/job-bot && /opt/job-bot/venv/bin/python3 /opt/job-bot/job_bot.py >> /opt/job-bot/cron.log 2>&1

@@ -1,0 +1,31 @@
+# Example systemd unit + timer pair for running job-bot daily.
+# Install both files to /etc/systemd/system/, then:
+#   systemctl daemon-reload
+#   systemctl enable --now job-bot.timer
+#
+# ─────────────────────────────────────────────────────────────────────────
+# /etc/systemd/system/job-bot.service
+# ─────────────────────────────────────────────────────────────────────────
+[Unit]
+Description=Job scraper bot
+After=network-online.target
+
+[Service]
+Type=oneshot
+WorkingDirectory=/opt/job-bot
+ExecStart=/opt/job-bot/venv/bin/python3 /opt/job-bot/job_bot.py
+StandardOutput=journal
+StandardError=journal
+
+# ─────────────────────────────────────────────────────────────────────────
+# /etc/systemd/system/job-bot.timer
+# ─────────────────────────────────────────────────────────────────────────
+[Unit]
+Description=Run job-bot daily
+
+[Timer]
+OnCalendar=*-*-* 09:00:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target
