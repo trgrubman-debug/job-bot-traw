@@ -43,6 +43,16 @@ python3 job_bot.py --dry-run   # see what would be posted
 python3 job_bot.py             # post for real
 ```
 
+### Using an AI coding assistant (Claude Code, Cursor, etc.)
+
+Just clone the repo, open it in your editor, and tell the assistant:
+
+> _"Set this up for me — I want to track [your keywords] in [your city]
+> and get a daily digest in [Discord / Telegram]."_
+
+The assistant will read [`CLAUDE.md`](CLAUDE.md) at the repo root for
+exact setup steps, then ask you for whichever secrets it needs.
+
 ## Setting up a notifier
 
 ### Discord
