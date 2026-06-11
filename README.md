@@ -53,6 +53,180 @@ Just clone the repo, open it in your editor, and tell the assistant:
 The assistant will read [`CLAUDE.md`](CLAUDE.md) at the repo root for
 exact setup steps, then ask you for whichever secrets it needs.
 
+## Personalize it for your search
+
+The default config is tuned for crypto + AI ops in NYC/remote. To retarget
+it for your own search, you only ever edit **three things** in
+`config.yaml`:
+
+1. **`title_keywords`** — which job titles you care about.
+2. **`location_filter`** — which cities and remote regions you'll accept.
+3. **`sources:`** — disable any boards that don't post your kind of job.
+
+Here are some drop-in examples. Paste the relevant block over the matching
+section of your `config.yaml`.
+
+### Example: software engineer, SF Bay Area or remote-US
+
+```yaml
+title_keywords:
+  - software engineer
+  - swe
+  - backend engineer
+  - frontend engineer
+  - full stack
+  - staff engineer
+  - senior engineer
+  - principal engineer
+
+location_filter:
+  enabled: true
+  cities_allow: ["san francisco", "oakland", "berkeley", "south bay", "sf bay"]
+  cities_block: []
+  remote_allow: true
+  remote_geo_allow: ["us", "usa", "united states", "north america"]
+  reject_unknown_locations: true
+
+sources:
+  # Crypto boards mostly won't help here — disable to cut noise.
+  web3career:          { enabled: false, url: https://web3.career/operations-jobs }
+  cryptocurrencyjobs:  { enabled: false, url: https://cryptocurrencyjobs.co/operations/ }
+  cryptojobslist:      { enabled: false, url: https://cryptojobslist.com/operations }
+  builtin:
+    enabled: true
+    pages:
+      - https://builtin.com/jobs/dev-engineering
+      - https://builtin.com/jobs/remote/dev-engineering
+  linkedin:
+    enabled: true
+    searches:
+      # geoId for SF Bay = 90000084
+      - https://www.linkedin.com/jobs/search/?keywords=software%20engineer&f_TPR=r86400&geoId=90000084
+      - https://www.linkedin.com/jobs/search/?keywords=software%20engineer&f_TPR=r86400&f_WT=2
+```
+
+### Example: product designer, anywhere remote
+
+```yaml
+title_keywords:
+  - product designer
+  - senior designer
+  - design lead
+  - ux designer
+  - ui designer
+  - design manager
+
+location_filter:
+  enabled: true
+  cities_allow: []          # no city requirement
+  cities_block: []
+  remote_allow: true
+  remote_geo_allow: []      # any remote region
+  reject_unknown_locations: false
+
+sources:
+  web3career:          { enabled: false, url: https://web3.career/operations-jobs }
+  cryptocurrencyjobs:  { enabled: false, url: https://cryptocurrencyjobs.co/operations/ }
+  cryptojobslist:      { enabled: false, url: https://cryptojobslist.com/operations }
+  builtin:
+    enabled: true
+    pages:
+      - https://builtin.com/jobs/design-ux
+      - https://builtin.com/jobs/remote/design-ux
+  linkedin:
+    enabled: true
+    searches:
+      - https://www.linkedin.com/jobs/search/?keywords=product%20designer&f_TPR=r86400&f_WT=2
+      - https://www.linkedin.com/jobs/search/?keywords=senior%20designer&f_TPR=r86400&f_WT=2
+```
+
+### Example: marketing / growth, NYC
+
+```yaml
+title_keywords:
+  - marketing manager
+  - growth manager
+  - growth lead
+  - head of marketing
+  - performance marketing
+  - lifecycle marketing
+  - content marketing
+  - brand manager
+
+location_filter:
+  enabled: true
+  cities_allow: ["new york", "nyc", "manhattan", "brooklyn"]
+  cities_block: ["buffalo", "rochester", "albany"]
+  remote_allow: false       # NYC-only for this search
+  remote_geo_allow: []
+  reject_unknown_locations: true
+
+sources:
+  web3career:          { enabled: false, url: https://web3.career/operations-jobs }
+  cryptocurrencyjobs:  { enabled: false, url: https://cryptocurrencyjobs.co/operations/ }
+  cryptojobslist:      { enabled: false, url: https://cryptojobslist.com/operations }
+  builtin:
+    enabled: true
+    pages:
+      - https://www.builtinnyc.com/jobs/marketing
+  linkedin:
+    enabled: true
+    searches:
+      # geoId 105080838 = NYC metro
+      - https://www.linkedin.com/jobs/search/?keywords=marketing&f_TPR=r86400&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=growth&f_TPR=r86400&geoId=105080838
+```
+
+### Example: data scientist / ML engineer, US-remote
+
+```yaml
+title_keywords:
+  - data scientist
+  - machine learning
+  - ml engineer
+  - applied scientist
+  - research engineer
+  - ai engineer
+  - llm engineer
+
+location_filter:
+  enabled: true
+  cities_allow: []
+  cities_block: []
+  remote_allow: true
+  remote_geo_allow: ["us", "usa", "united states", "north america"]
+  reject_unknown_locations: false
+
+sources:
+  web3career:          { enabled: false, url: https://web3.career/operations-jobs }
+  cryptocurrencyjobs:  { enabled: false, url: https://cryptocurrencyjobs.co/operations/ }
+  cryptojobslist:      { enabled: false, url: https://cryptojobslist.com/operations }
+  builtin:
+    enabled: true
+    pages:
+      - https://builtin.com/jobs/data-science-analytics
+      - https://builtin.com/jobs/remote/data-science-analytics
+  linkedin:
+    enabled: true
+    searches:
+      - https://www.linkedin.com/jobs/search/?keywords=machine%20learning%20engineer&f_TPR=r86400&f_WT=2
+      - https://www.linkedin.com/jobs/search/?keywords=data%20scientist&f_TPR=r86400&f_WT=2
+```
+
+> **Tip — finding your `geoId`.** Run a job search on linkedin.com with
+> the city filter you want, then look at the URL: the `geoId=...` value is
+> what you copy. Paste your URL straight into `sources.linkedin.searches`
+> and you're done; you don't have to memorize geoIds.
+
+After editing, always:
+
+```bash
+python3 job_bot.py --dry-run
+```
+
+That prints what the bot **would** post without actually notifying anyone.
+If the list looks right, drop `--dry-run` to ship for real.
+
 ## Setting up a notifier
 
 ### Discord
