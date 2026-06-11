@@ -1,0 +1,57 @@
+# Run job-bot on a schedule for free using GitHub Actions.
+#
+# Save this file as:  .github/workflows/job-bot.yml  in your fork.
+# Then in your repo on GitHub:  Settings → Secrets and variables → Actions
+# Add these secrets (only the ones for the notifier(s) you enabled):
+#   DISCORD_WEBHOOK_URL
+#   TELEGRAM_BOT_TOKEN
+#   TELEGRAM_CHAT_ID
+#
+# The workflow commits the SQLite dedup DB back to the repo after each run,
+# so jobs you've already seen don't get sent again the next day.
+
+name: job-bot
+
+on:
+  schedule:
+    # Runs daily at 13:00 UTC (9 AM ET). Edit to your timezone.
+    - cron: "0 13 * * *"
+  workflow_dispatch:   # also lets you trigger it manually from the Actions tab
+
+permissions:
+  contents: write   # so we can push the updated seen_jobs.db back
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run the bot
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python3 job_bot.py
+
+      - name: Commit updated dedup DB
+        run: |
+          # -f forces git to add the file even though *.db is gitignored
+          # by default in this repo. The DB only ever contains job URLs and
+          # titles, no secrets — but if you're worried, use a private fork.
+          git config user.name  "job-bot"
+          git config user.email "job-bot@users.noreply.github.com"
+          git add -f seen_jobs.db
+          if git diff --cached --quiet; then
+            echo "No DB changes to commit."
+          else
+            git commit -m "Update seen_jobs.db [skip ci]"
+            git push
+          fi

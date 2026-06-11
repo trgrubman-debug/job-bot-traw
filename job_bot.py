@@ -226,6 +226,16 @@ def run(cfg, dry_run=False):
         "Scanned %d filtered jobs; %d new since last run", len(all_jobs), len(new_jobs)
     )
 
+    # Optional cap: if `max_jobs_per_run` is set, send only the freshest N.
+    # Sources earlier in the config get priority (typical config puts the
+    # higher-signal boards first).
+    max_per_run = cfg.get("max_jobs_per_run")
+    if max_per_run and len(new_jobs) > max_per_run:
+        log.info(
+            "Capping at %d (set max_jobs_per_run in config to change)", max_per_run
+        )
+        new_jobs = new_jobs[:max_per_run]
+
     if dry_run:
         log.info("Dry run — skipping notifications. New jobs that would be sent:")
         for j in new_jobs:

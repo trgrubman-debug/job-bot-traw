@@ -387,22 +387,30 @@ notifiers:
 
 ## Deploying on a schedule
 
-### Cron (Linux / macOS)
+Three options, ranked from easiest to most-control:
 
-See `examples/crontab.example`. The line below runs daily at 9 AM UTC:
+### GitHub Actions (free, no server)
+
+The easiest path — fork this repo, copy
+`examples/github-actions.yml.example` to `.github/workflows/job-bot.yml`,
+and add your `DISCORD_WEBHOOK_URL` / `TELEGRAM_*` values as **Actions
+Secrets** in the fork's Settings. The workflow runs daily, commits the
+dedup DB back to the repo, and costs $0.
+
+### Your laptop (cron, free)
 
 ```
-0 9 * * * cd /opt/job-bot && /opt/job-bot/venv/bin/python3 /opt/job-bot/job_bot.py >> /opt/job-bot/cron.log 2>&1
+0 9 * * * cd /path/to/job-bot && /path/to/job-bot/venv/bin/python3 /path/to/job-bot/job_bot.py >> /path/to/job-bot/cron.log 2>&1
 ```
 
-### systemd (Linux)
+See `examples/crontab.example`. Only runs while your laptop is on.
 
-See `examples/systemd.service.example` for a unit + timer pair.
+### A small VPS like DigitalOcean ($4/mo)
 
-### macOS launchd
-
-You can also use `launchd` plists — but cron via `crontab -e` is the simplest
-on macOS too.
+The most-control option. See `examples/systemd.service.example` for a
+systemd unit + timer pair, or use the same cron line as above. The
+[`CLAUDE.md`](CLAUDE.md) walkthrough has step-by-step DigitalOcean
+provisioning.
 
 ## How dedup works
 

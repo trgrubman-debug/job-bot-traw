@@ -6,6 +6,17 @@
 # Where to store seen-job hashes for deduplication.
 db_path: seen_jobs.db
 
+# ── Volume cap ──────────────────────────────────────────────────────────────
+# Maximum number of new jobs to send in a single run. Useful when you don't
+# want to be spammed on a day when 50 things hit at once. Set to 0 or null
+# to send everything new.
+#
+# Rule of thumb:
+#   5–10   → only the most interesting roles (good for tight filters)
+#   10–20  → daily digest size (recommended default)
+#   30+    → "send me everything"
+max_jobs_per_run: 20
+
 # ── Notifiers ───────────────────────────────────────────────────────────────
 # Enable any or all. Secrets are loaded from .env (see .env.example).
 notifiers:
