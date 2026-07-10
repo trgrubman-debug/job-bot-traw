@@ -115,6 +115,14 @@ company_blocklist:
 # ── Title filter ────────────────────────────────────────────────────────────
 # A job's title must contain at least one of these substrings (case-insensitive)
 # to be considered. Add or remove keywords to match the roles you care about.
+title_keywords_exclude:
+  - junior
+  - entry level
+  - entry-level
+  - intern
+  - internship
+  - programmatic
+
 title_keywords:
   - technical solutions consultant
   - solutions consultant

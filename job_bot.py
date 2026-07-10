@@ -58,6 +58,14 @@ def title_matches(title, keywords):
     return any(kw.lower() in t for kw in keywords)
 
 
+def title_not_excluded(title, exclude_keywords):
+    """True if the title contains none of the exclude keywords (case-insensitive)."""
+    if not exclude_keywords:
+        return True
+    t = title.lower()
+    return not any(kw.lower() in t for kw in exclude_keywords)
+
+
 # ── Company blocklist ────────────────────────────────────────────────────────
 
 def company_allowed(company, blocklist):
@@ -191,6 +199,7 @@ def run(cfg, dry_run=False):
     conn = init_db(db_path)
 
     title_keywords = cfg.get("title_keywords") or []
+    title_keywords_exclude = cfg.get("title_keywords_exclude") or []
     location_filter = cfg.get("location_filter") or {}
     company_blocklist = cfg.get("company_blocklist") or []
     sources_cfg = cfg.get("sources") or {}
@@ -210,6 +219,8 @@ def run(cfg, dry_run=False):
             continue
         for job in scraped:
             if not title_matches(job.get("title", ""), title_keywords):
+                continue
+            if not title_not_excluded(job.get("title", ""), title_keywords_exclude):
                 continue
             if not location_ok(
                 job.get("location", ""), job.get("title", ""), location_filter
