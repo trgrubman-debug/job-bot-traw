@@ -342,7 +342,7 @@ def scrape_linkedin(cfg):
                         "url": href,
                         "posted": posted,
                         "location": location,
-                        "source": "LinkedIn",
+                        "source": cfg.get("source_label", "LinkedIn"),
                     })
         except Exception as e:
             log.error("linkedin scrape failed for %s: %s", search_url, e)
@@ -359,4 +359,5 @@ SCRAPERS = {
     "cryptojobslist": scrape_cryptojobslist,
     "builtin": scrape_builtin,
     "linkedin": scrape_linkedin,
+    "linkedin_startup": scrape_linkedin,
 }

@@ -86,6 +86,18 @@ sources:
       - https://www.linkedin.com/jobs/search/?keywords=technical+account+manager&f_TPR=r86400&f_I=144&f_WT=2
       - https://www.linkedin.com/jobs/search/?keywords=solutions+consultant&f_TPR=r86400&f_I=144&f_WT=2
 
+  linkedin_startup:
+    enabled: true
+    # Same role searches scoped to small companies (1–200 employees).
+    # f_CS=B%2CC%2CD = LinkedIn's company size buckets: 1–10, 11–50, 51–200.
+    # Closest approximation to "under 100 employees" LinkedIn supports.
+    source_label: "LinkedIn · Startup"
+    searches:
+      - https://www.linkedin.com/jobs/search/?keywords=technical+account+manager&f_TPR=r86400&f_CS=B%2CC%2CD&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=solutions+consultant&f_TPR=r86400&f_CS=B%2CC%2CD&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=technical+account+manager&f_TPR=r86400&f_CS=B%2CC%2CD&f_WT=2
+      - https://www.linkedin.com/jobs/search/?keywords=solutions+consultant&f_TPR=r86400&f_CS=B%2CC%2CD&f_WT=2
+
 # ── Company blocklist ───────────────────────────────────────────────────────
 # Jobs from companies whose name contains any of these strings (case-insensitive)
 # will be dropped. Use this to filter out non-tech industries that post
