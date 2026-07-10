@@ -53,9 +53,19 @@ def setup_logging(level_name):
 def title_matches(title, keywords):
     """True if the title contains any of the keywords (case-insensitive)."""
     if not keywords:
-        return True  # no filter configured → accept everything
+        return True
     t = title.lower()
     return any(kw.lower() in t for kw in keywords)
+
+
+# ── Company blocklist ────────────────────────────────────────────────────────
+
+def company_allowed(company, blocklist):
+    """True if the company name does not match any blocklist entry."""
+    if not blocklist:
+        return True
+    c = (company or "").lower()
+    return not any(b.lower() in c for b in blocklist)
 
 
 # ── Location filter ─────────────────────────────────────────────────────────
@@ -182,6 +192,7 @@ def run(cfg, dry_run=False):
 
     title_keywords = cfg.get("title_keywords") or []
     location_filter = cfg.get("location_filter") or {}
+    company_blocklist = cfg.get("company_blocklist") or []
     sources_cfg = cfg.get("sources") or {}
 
     all_jobs = []
@@ -197,13 +208,14 @@ def run(cfg, dry_run=False):
         except Exception as e:
             log.error("Source '%s' crashed: %s", key, e)
             continue
-        # Apply title + location filter immediately so we don't store junk.
         for job in scraped:
             if not title_matches(job.get("title", ""), title_keywords):
                 continue
             if not location_ok(
                 job.get("location", ""), job.get("title", ""), location_filter
             ):
+                continue
+            if not company_allowed(job.get("company", ""), company_blocklist):
                 continue
             all_jobs.append(job)
 

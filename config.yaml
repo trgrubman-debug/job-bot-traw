@@ -1,0 +1,178 @@
+# Copy this file to `config.yaml` and edit as needed.
+# Run the bot with:  python3 job_bot.py
+# (or:  python3 job_bot.py --config path/to/your/config.yaml)
+
+# ── Database ────────────────────────────────────────────────────────────────
+# Where to store seen-job hashes for deduplication.
+db_path: seen_jobs.db
+
+# ── Volume cap ──────────────────────────────────────────────────────────────
+# Maximum number of new jobs to send in a single run. Useful when you don't
+# want to be spammed on a day when 50 things hit at once. Set to 0 or null
+# to send everything new.
+#
+# Rule of thumb:
+#   5–10   → only the most interesting roles (good for tight filters)
+#   10–20  → daily digest size (recommended default)
+#   30+    → "send me everything"
+max_jobs_per_run: 20
+
+# ── Notifiers ───────────────────────────────────────────────────────────────
+# Enable any or all. Secrets are loaded from .env (see .env.example).
+notifiers:
+  discord:
+    enabled: true
+    heartbeat_when_empty: false
+
+  telegram:
+    enabled: false
+    heartbeat_when_empty: false
+
+  gmail:
+    enabled: false
+    heartbeat_when_empty: false
+
+# ── Sources ─────────────────────────────────────────────────────────────────
+# Each source is a built-in scraper. Disable any you don't want.
+sources:
+  web3career:
+    enabled: false
+    url: https://web3.career/operations-jobs
+
+  cryptocurrencyjobs:
+    enabled: false
+    url: https://cryptocurrencyjobs.co/operations/
+
+  cryptojobslist:
+    enabled: false
+    # Requires `cloudscraper` to bypass Cloudflare.
+    url: https://cryptojobslist.com/operations
+
+  builtin:
+    enabled: true
+    # builtin.com aggregates startup jobs across the US.
+    # You can add or remove search pages here.
+    pages:
+      - https://builtin.com/jobs?search=solutions+consultant&allLocations=true
+      - https://builtin.com/jobs?search=technical+account+manager&allLocations=true
+      - https://builtin.com/jobs?search=product+support&allLocations=true
+      - https://www.builtinnyc.com/jobs?search=solutions+consultant
+      - https://www.builtinnyc.com/jobs?search=technical+account+manager
+      - https://builtin.com/jobs/remote?search=solutions+consultant
+      - https://builtin.com/jobs/remote?search=technical+account+manager
+
+  linkedin:
+    enabled: true
+    # LinkedIn public job-search URLs. Use the filters in the URL to narrow:
+    #   f_TPR=r86400      → posted in the last 24h
+    #   geoId=105080838   → New York City metro
+    #   f_WT=2            → remote workplace type
+    # Build your own search URL at https://www.linkedin.com/jobs/search/
+    # then paste it here.
+    searches:
+      # NYC — core roles
+      - https://www.linkedin.com/jobs/search/?keywords=technical+solutions+consultant&f_TPR=r86400&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=solutions+consultant&f_TPR=r86400&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=technical+account+manager&f_TPR=r86400&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=product+integrity&f_TPR=r86400&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=product+support&f_TPR=r86400&geoId=105080838
+      # Remote — core roles
+      - https://www.linkedin.com/jobs/search/?keywords=technical+solutions+consultant&f_TPR=r86400&f_WT=2
+      - https://www.linkedin.com/jobs/search/?keywords=technical+account+manager&f_TPR=r86400&f_WT=2
+      - https://www.linkedin.com/jobs/search/?keywords=solutions+consultant&f_TPR=r86400&f_WT=2
+      # Sports industry (teams, leagues, sports tech) — NYC + remote
+      - https://www.linkedin.com/jobs/search/?keywords=technical+account+manager&f_TPR=r86400&f_I=144&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=solutions+consultant&f_TPR=r86400&f_I=144&geoId=105080838
+      - https://www.linkedin.com/jobs/search/?keywords=technical+account+manager&f_TPR=r86400&f_I=144&f_WT=2
+      - https://www.linkedin.com/jobs/search/?keywords=solutions+consultant&f_TPR=r86400&f_I=144&f_WT=2
+
+# ── Company blocklist ───────────────────────────────────────────────────────
+# Jobs from companies whose name contains any of these strings (case-insensitive)
+# will be dropped. Use this to filter out non-tech industries that post
+# "solutions consultant" roles (insurance, financial advisors, etc.).
+company_blocklist:
+  - new york life
+  - northwestern mutual
+  - massmutual
+  - mass mutual
+  - aflac
+  - prudential
+  - metlife
+  - allstate
+  - state farm
+  - guardian life
+  - principal financial
+  - lincoln financial
+  - edward jones
+  - ameriprise
+  - transamerica
+  - john hancock
+  - nationwide
+  - mutual of omaha
+  - pacific life
+  - sun life
+
+# ── Title filter ────────────────────────────────────────────────────────────
+# A job's title must contain at least one of these substrings (case-insensitive)
+# to be considered. Add or remove keywords to match the roles you care about.
+title_keywords:
+  - technical solutions consultant
+  - solutions consultant
+  - technical account manager
+  - tam
+  - product integrity
+  - product support
+  - solutions engineer
+
+# ── Location filter ─────────────────────────────────────────────────────────
+# Controls which job locations are accepted. Edit for your city / preferences.
+#
+# Examples:
+#   - To accept jobs anywhere in the world, set:
+#       reject_unknown_locations: false
+#       cities_allow: []
+#       remote_allow: true
+#       remote_geo_allow: []   # any
+#   - To accept only Berlin + remote-EU, set:
+#       cities_allow: ["berlin"]
+#       remote_geo_allow: ["eu", "europe", "germany"]
+location_filter:
+  enabled: true
+  # Cities/regions that count as "yours". Matched as case-insensitive substrings.
+  cities_allow:
+    - new york
+    - nyc
+    - manhattan
+    - brooklyn
+    - queens ny
+    - the bronx
+    - jersey city
+  # Cities that should be rejected even if they share a region prefix.
+  # Example: prevents "Buffalo, NY" from matching ", ny" wildcards.
+  cities_block:
+    - buffalo
+    - rochester
+    - albany
+    - troy ny
+    - syracuse
+    - ithaca
+    - binghamton
+    - utica
+    - poughkeepsie
+    - schenectady
+  # Allow fully-remote postings?
+  remote_allow: true
+  # When a remote job specifies a geo lock (e.g. "Remote - India"), only allow
+  # the listing if the location string contains one of these tokens.
+  remote_geo_allow:
+    - us
+    - usa
+    - united states
+    - north america
+    - americas
+  # If the scraper couldn't determine the location, reject by default?
+  # (Safer for noisy boards. Set false to be permissive.)
+  reject_unknown_locations: true
+
+# ── Logging ─────────────────────────────────────────────────────────────────
+log_level: INFO   # DEBUG, INFO, WARNING, ERROR

@@ -234,6 +234,96 @@ class TelegramNotifier(Notifier):
         )
 
 
+# ── Gmail ───────────────────────────────────────────────────────────────────
+
+class GmailNotifier(Notifier):
+    """Sends a daily digest email via Gmail SMTP.
+
+    Requires a Gmail App Password (not your regular password):
+      myaccount.google.com → Security → 2-Step Verification → App passwords
+
+    Reads GMAIL_SENDER, GMAIL_APP_PASSWORD, and GMAIL_RECIPIENT from env.
+    """
+
+    def __init__(self, cfg):
+        super().__init__(cfg)
+        self.sender = os.environ.get("GMAIL_SENDER", "").strip()
+        self.password = os.environ.get("GMAIL_APP_PASSWORD", "").strip()
+        self.recipient = os.environ.get("GMAIL_RECIPIENT", "").strip()
+        if not all([self.sender, self.password, self.recipient]):
+            log.warning(
+                "Gmail notifier enabled but GMAIL_SENDER / GMAIL_APP_PASSWORD / "
+                "GMAIL_RECIPIENT are unset; messages will not be sent."
+            )
+
+    def _send(self, subject, body_html):
+        import smtplib
+        from email.mime.multipart import MIMEMultipart
+        from email.mime.text import MIMEText
+
+        if not all([self.sender, self.password, self.recipient]):
+            return
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = subject
+        msg["From"] = self.sender
+        msg["To"] = self.recipient
+        msg.attach(MIMEText(body_html, "html"))
+        try:
+            with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=30) as smtp:
+                smtp.login(self.sender, self.password)
+                smtp.sendmail(self.sender, self.recipient, msg.as_string())
+        except Exception as e:
+            log.error("Gmail send error: %s", e)
+
+    def send_jobs(self, new_jobs, total_scanned):
+        if not new_jobs:
+            if self.heartbeat_when_empty:
+                self.send_heartbeat(total_scanned)
+            return
+
+        collapsed = {}
+        for job in new_jobs:
+            k = (job["title"].lower().strip(), job["company"].lower().strip())
+            if k in collapsed:
+                collapsed[k]["count"] += 1
+            else:
+                collapsed[k] = {**job, "count": 1}
+        jobs = list(collapsed.values())
+
+        by_source = {}
+        for job in jobs:
+            by_source.setdefault(job["source"], []).append(job)
+
+        date_str = datetime.now().strftime("%B %d, %Y")
+        rows = []
+        for source, batch in by_source.items():
+            rows.append(f"<h3>{source} ({len(batch)})</h3><ul>")
+            for job in batch:
+                posted = f" &bull; {job['posted']}" if job.get("posted") else ""
+                loc = f" &bull; {job['location']}" if job.get("location") else ""
+                count = f" &times;{job['count']}" if job.get("count", 1) > 1 else ""
+                rows.append(
+                    f'<li><a href="{job["url"]}">{job["title"]}{count}</a>'
+                    f" &mdash; {job['company']}{loc}{posted}</li>"
+                )
+            rows.append("</ul>")
+
+        body = (
+            f"<h2>Daily Job Scan &mdash; {date_str}</h2>"
+            f"<p><strong>{len(jobs)} new role(s) found</strong></p>"
+            + "".join(rows)
+        )
+        self._send(f"Job Bot: {len(jobs)} new role(s) — {date_str}", body)
+        log.info("Gmail: sent digest with %d job(s)", len(jobs))
+
+    def send_heartbeat(self, total_scanned):
+        date_str = datetime.now().strftime("%B %d, %Y")
+        self._send(
+            f"Job Bot: no new roles — {date_str}",
+            f"<p>Scanned {total_scanned} listings on {date_str}. No new roles today.</p>",
+        )
+
+
 def _md_escape(text):
     """Escape characters that Telegram's legacy Markdown treats specially."""
     return (
@@ -250,4 +340,5 @@ def _md_escape(text):
 NOTIFIERS = {
     "discord": DiscordNotifier,
     "telegram": TelegramNotifier,
+    "gmail": GmailNotifier,
 }

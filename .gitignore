@@ -4,7 +4,7 @@
 !.env.example
 
 # User config (committed example only)
-config.yaml
+!config.yaml
 !config.example.yaml
 
 # Database
