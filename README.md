@@ -1,5 +1,12 @@
 # job-bot
 
+## Troy's setup
+
+- **GitHub repo:** https://github.com/trgrubman-debug/job-bot-traw
+- **Local folder:** `~/job-bot` (`/Users/troygrubman/job-bot`)
+- **Notifier:** Discord (webhook URL stored as a GitHub Actions secret)
+- **Schedule:** Daily at 9 AM ET via GitHub Actions
+
 A small, pluggable bot that scrapes job boards on a schedule and posts new
 listings to Discord, Telegram, or any channel you wire up. Everything is
 driven by a single YAML config — sources, keywords, location filter, and
